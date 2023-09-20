@@ -1,19 +1,56 @@
 #!/usr/bin/env python3
 
+################
+## Set this to where you have code-server installed. 
+## The below is the default path for most installations.
+## If you're running code-server on Docker, you'll probably
+## have to do something a little bit different.
+################
 import sys
 import json
 import os
 
-pkt_name = sys.argv[1]
-operation = sys.argv[2]
+hello_text = '''patch.py
+Based on the AUR packages code-marketplace and code-features
+'''
 
-product_path = "/usr/lib/code/product.json"
-patch_path = "/usr/share/%s/patch.json" % pkt_name
-cache_path = "/usr/share/%s/cache.json" % pkt_name
+help_text = ''' usage: sudo " + sys.argv[0] + " (patch | restore) [/usr/lib/code-server]
+
+'''
+path_text = ''' if you don't have code-server installed in /usr/lib/code-server,
+  set the path with the second argument, or edit patch.py.
+'''
+
+print(hello_text)
+
+if len(sys.argv) == 1:
+    print(help_text + path_text)
+    exit(1)
+
+product_json_subpath ="lib/vscode/product.json"
+if len(sys.argv) == 3:
+    code_server_path = sys.argv[3]
+else:
+    code_server_path = "/usr/lib/code-server/"
+product_path = os.path.join(code_server_path, product_json_subpath)
+if not os.path.exists(product_path):
+    print('product.json not found. ' + path_text)
+    exit(64)
+
+script_dir = os.path.dirname(__file__)
+patch_file = "patch.json"
+patch_path = os.path.join(script_dir, patch_file)
+cache_file = "cache.json"
+cache_path = os.path.join(script_dir, cache_file)
+operation = sys.argv[1]
 
 if not os.path.exists(cache_path):
     with open(cache_path, 'w') as file:
         file.write("{}")
+
+if not os.path.exists(patch_path):
+    print('please download the whole package and try again!')
+    exit(32)
 
 def patch():
     with open(product_path, "r") as product_file:
